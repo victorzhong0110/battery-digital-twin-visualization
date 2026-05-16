@@ -1,0 +1,422 @@
+/* ==========================================================
+   Dark-Luxury Design System for Battery Digital Twin Platform
+   ========================================================== */
+
+:root {
+    /* Core palette */
+    --bg-primary: #0a0e17;
+    --bg-secondary: #111827;
+    --bg-card: #1a2332;
+    --bg-card-hover: #1f2b3d;
+    --border-subtle: #2a3548;
+    --border-accent: #3b82f6;
+
+    /* Text hierarchy */
+    --text-primary: #f0f4f8;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --text-accent: #60a5fa;
+
+    /* Status colors — battery health */
+    --health-excellent: #10b981;
+    --health-good: #34d399;
+    --health-warning: #f59e0b;
+    --health-critical: #ef4444;
+    --health-dead: #6b7280;
+
+    /* Chart accent palette */
+    --chart-1: #60a5fa;
+    --chart-2: #a78bfa;
+    --chart-3: #34d399;
+    --chart-4: #fbbf24;
+    --chart-5: #f472b6;
+    --chart-6: #38bdf8;
+    --chart-7: #fb923c;
+    --chart-8: #c084fc;
+
+    /* Spacing rhythm */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+
+    /* Radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+
+    /* Shadows */
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+    --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+}
+
+/* ---- Reset & Base ---- */
+body {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    margin: 0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Sidebar Nav ---- */
+.sidebar {
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-subtle);
+    min-height: 100vh;
+    padding: var(--space-lg) 0;
+    position: fixed;
+    width: 260px;
+    z-index: 100;
+    overflow-y: auto;
+}
+
+.sidebar-brand {
+    padding: var(--space-md) var(--space-lg);
+    margin-bottom: var(--space-xl);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.sidebar-brand h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.sidebar-brand p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0.25rem 0 0;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1.25rem;
+    color: var(--text-secondary) !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none !important;
+    border-left: 3px solid transparent;
+    transition: var(--transition-fast);
+}
+
+.nav-link .bi {
+    color: var(--text-muted);
+    transition: var(--transition-fast);
+    width: 1.25rem;
+    text-align: center;
+}
+
+.nav-link:hover .bi {
+    color: var(--text-accent);
+}
+
+.nav-link:hover {
+    color: var(--text-primary) !important;
+    background: rgba(59, 130, 246, 0.06);
+}
+
+.nav-link.active {
+    color: var(--text-accent) !important;
+    background: rgba(59, 130, 246, 0.1);
+    border-left-color: var(--border-accent);
+}
+
+/* ---- Main Content ---- */
+.main-content {
+    margin-left: 260px;
+    padding: var(--space-xl) var(--space-2xl);
+    min-height: 100vh;
+}
+
+/* ---- Page Header ---- */
+.page-header {
+    margin-bottom: var(--space-xl);
+}
+
+.page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.03em;
+}
+
+.page-header p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0.35rem 0 0;
+}
+
+/* ---- Cards ---- */
+.card-dark {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-normal);
+}
+
+.card-dark:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: var(--shadow-glow);
+}
+
+.card-dark h3 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 var(--space-sm);
+}
+
+/* ---- KPI Stat Cards ---- */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+.kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--border-accent);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.kpi-card.health-excellent::before { background: var(--health-excellent); }
+.kpi-card.health-warning::before { background: var(--health-warning); }
+.kpi-card.health-critical::before { background: var(--health-critical); }
+
+.kpi-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+    margin: 0.25rem 0;
+}
+
+.kpi-delta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* ---- Chart containers ---- */
+.chart-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.chart-container .chart-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+}
+
+/* ---- Controls & Dropdowns (Dash 4.x native classes) ---- */
+
+/* Root dropdown container — override white default */
+.dash-dropdown {
+    background: var(--bg-secondary) !important;
+    border-radius: var(--radius-sm) !important;
+}
+
+/* The clickable trigger area */
+.dash-dropdown .dash-dropdown-trigger,
+.dash-dropdown-trigger {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Selected value text — must be readable on dark bg */
+.dash-dropdown-value,
+.dash-dropdown-value-item {
+    color: var(--text-primary) !important;
+}
+
+/* Multi-select value tags */
+.dash-dropdown-value-item[data-deletable] {
+    background: var(--border-accent) !important;
+    color: #fff !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+}
+
+/* Delete button in multi-select tags */
+.dash-dropdown-value-item button {
+    color: rgba(255,255,255,0.7) !important;
+}
+.dash-dropdown-value-item button:hover {
+    color: #fff !important;
+}
+
+/* The dropdown menu (option list) */
+.dash-dropdown-menu {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: var(--radius-sm) !important;
+}
+
+/* Individual options in the dropdown list */
+.dash-dropdown-option {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Hovered / focused option */
+.dash-dropdown-option:hover,
+.dash-dropdown-option[aria-selected="true"] {
+    background: var(--bg-card-hover) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Search input inside dropdown */
+.dash-dropdown input,
+.dash-dropdown input[type="text"] {
+    color: var(--text-primary) !important;
+    caret-color: var(--text-accent) !important;
+}
+
+/* Placeholder text */
+.dash-dropdown [class*="placeholder"],
+.dash-dropdown-placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* Arrow / chevron indicators */
+.dash-dropdown svg,
+.dash-dropdown [class*="indicator"] svg {
+    fill: var(--text-secondary) !important;
+}
+
+/* Separator line between value and arrow */
+.dash-dropdown [class*="indicatorSeparator"] {
+    background-color: var(--border-subtle) !important;
+}
+
+/* ---- Fallback: attribute selectors for edge cases ---- */
+[class*="dropdown"] [class*="singleValue"],
+[class*="dropdown"] [class*="option"],
+[class*="dropdown"] [class*="placeholder"] {
+    color: var(--text-primary) !important;
+}
+[class*="dropdown"] [class*="menu"],
+[class*="dropdown"] [class*="control"] {
+    background: var(--bg-secondary) !important;
+    border-color: var(--border-subtle) !important;
+}
+[class*="dropdown"] [class*="option"]:hover,
+[class*="dropdown"] [class*="option--is-focused"] {
+    background: var(--bg-card-hover) !important;
+}
+
+/* ---- Legacy React Select (pre-Dash 4.x) ---- */
+.Select-control { background: var(--bg-secondary) !important; border-color: var(--border-subtle) !important; }
+.Select-value-label { color: var(--text-primary) !important; }
+.Select-placeholder, .Select-input > input { color: var(--text-secondary) !important; }
+.Select-menu-outer, .Select-menu { background: var(--bg-secondary) !important; border-color: var(--border-subtle) !important; }
+.Select-option { background: var(--bg-secondary) !important; color: var(--text-primary) !important; }
+.Select-option.is-focused, .Select-option.is-selected { background: var(--bg-card-hover) !important; }
+.Select--multi .Select-value { background: var(--border-accent) !important; border-color: var(--border-accent) !important; color: #fff !important; }
+.Select--multi .Select-value-label { color: #fff !important; }
+.Select-arrow { border-top-color: var(--text-secondary) !important; }
+
+/* ---- Radio & Checklist ---- */
+.form-check-input:checked {
+    background-color: var(--border-accent) !important;
+    border-color: var(--border-accent) !important;
+}
+
+/* ---- RangeSlider ---- */
+.rc-slider-track {
+    background-color: var(--border-accent) !important;
+}
+
+.rc-slider-handle {
+    border-color: var(--border-accent) !important;
+}
+
+/* ---- Table styling ---- */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner table {
+    color: var(--text-primary) !important;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+        position: relative;
+    }
+    .main-content {
+        margin-left: 0;
+        padding: var(--space-md);
+    }
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ---- Loading spinner ---- */
+._dash-loading {
+    background: var(--bg-primary) !important;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}

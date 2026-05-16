@@ -1,0 +1,1 @@
+{"input_dim": 14, "d_model": 64, "nhead": 4, "num_layers": 3, "window_size": 15}
