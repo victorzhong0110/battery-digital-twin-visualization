@@ -453,11 +453,7 @@ add_paragraph(doc, "目 录", cn_font="黑体", size=Pt(14), bold=True,
 
 add_empty_line(doc)
 
-add_paragraph(doc, "（请在Word中右键此处 → 更新域 → 更新整个目录）",
-              cn_font="宋体", size=Pt(12),
-              alignment=WD_ALIGN_PARAGRAPH.CENTER, first_indent=False)
-
-# 插入 TOC 域代码
+# 插入 TOC 域代码（打开文档时由 Word 自动更新填充，见文末 updateFields 设置）
 p = doc.add_paragraph()
 p.paragraph_format.first_line_indent = Pt(0)
 fld_char_begin = parse_xml(f'<w:fldChar {nsdecls("w")} w:fldCharType="begin"/>')
@@ -1169,6 +1165,12 @@ if len(_sections) >= 3:
     set_header_styleref(body_sec)                    # 正文页眉："第X章 章标题"
 else:
     print(f"警告: 期望3个分节, 实际 {len(_sections)} 个, 跳过页眉页码设置")
+
+# 让 Word 打开文档时自动更新所有域(目录、页码、页眉章标题),无需手动右键更新域
+_settings = doc.settings.element
+for _uf in _settings.findall(qn("w:updateFields")):
+    _settings.remove(_uf)
+_settings.insert(0, parse_xml(f'<w:updateFields {nsdecls("w")} w:val="true"/>'))
 
 
 # ══════════════════════════════════════════════════════
