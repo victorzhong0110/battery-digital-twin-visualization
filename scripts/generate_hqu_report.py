@@ -157,6 +157,99 @@ def add_table(doc, headers, rows, caption, table_num):
     return table
 
 
+FIG_DIR = "/Users/zhongxudong/Desktop/大数据可视化技术/report_figures"
+
+
+def add_figure(doc, img_filename, fig_num, caption, width_cm=14):
+    """插入配图：图前空一行，图居中，图题在下方居中（小四宋体），图与图题保持同页。"""
+    import os
+    add_empty_line(doc)
+    p_img = doc.add_paragraph()
+    p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_img.paragraph_format.first_line_indent = Pt(0)
+    p_img.paragraph_format.space_before = Pt(0)
+    p_img.paragraph_format.space_after = Pt(0)
+    p_img.paragraph_format.keep_with_next = True  # 图与图题不分页
+    run = p_img.add_run()
+    run.add_picture(os.path.join(FIG_DIR, img_filename), width=Cm(width_cm))
+    p_cap = add_paragraph(doc, f"图{fig_num} {caption}",
+                          cn_font="宋体", size=Pt(12),
+                          alignment=WD_ALIGN_PARAGRAPH.CENTER, first_indent=False)
+    add_empty_line(doc)
+    return p_img
+
+
+def body_cited(doc, *segments):
+    """正文段落，支持内联上标引用。segments 为正文字符串或 ('cite', '编号') 元组。"""
+    p = doc.add_paragraph()
+    fmt = p.paragraph_format
+    fmt.line_spacing = 1.5
+    fmt.first_line_indent = Pt(24)
+    for seg in segments:
+        if isinstance(seg, tuple) and seg[0] == "cite":
+            r = p.add_run(f"[{seg[1]}]")
+            set_run_font(r, "宋体", "Times New Roman", Pt(12))
+            r.font.superscript = True
+        else:
+            r = p.add_run(seg)
+            set_run_font(r, "宋体", "Times New Roman", Pt(12))
+    return p
+
+
+def _set_pgnum_type(section, fmt, start=1):
+    """在 sectPr 中设置页码格式(decimal/upperRoman)与起始值。"""
+    sectPr = section._sectPr
+    for existing in sectPr.findall(qn("w:pgNumType")):
+        sectPr.remove(existing)
+    pg = parse_xml(f'<w:pgNumType {nsdecls("w")} w:fmt="{fmt}" w:start="{start}"/>')
+    sectPr.append(pg)
+
+
+def _append_field(paragraph, instr_text, cn_font="宋体", en_font="Times New Roman", size=Pt(9)):
+    """在段落中追加一个 Word 域(如 PAGE、STYLEREF)。"""
+    r1 = paragraph.add_run()
+    r1._element.append(parse_xml(f'<w:fldChar {nsdecls("w")} w:fldCharType="begin"/>'))
+    r2 = paragraph.add_run()
+    r2._element.append(parse_xml(f'<w:instrText {nsdecls("w")} xml:space="preserve"> {instr_text} </w:instrText>'))
+    r3 = paragraph.add_run()
+    r3._element.append(parse_xml(f'<w:fldChar {nsdecls("w")} w:fldCharType="separate"/>'))
+    r4 = paragraph.add_run()
+    r4._element.append(parse_xml(f'<w:fldChar {nsdecls("w")} w:fldCharType="end"/>'))
+    for r in (r1, r2, r3, r4):
+        set_run_font(r, cn_font, en_font, size)
+
+
+def set_footer_pagenum(section, fmt, start=1):
+    """设置该节页脚页码(居中, Times New Roman 小五)，并设定页码格式与起始值。"""
+    _set_pgnum_type(section, fmt, start)
+    footer = section.footer
+    footer.is_linked_to_previous = False
+    p = footer.paragraphs[0]
+    p.text = ""
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.first_line_indent = Pt(0)
+    _append_field(p, "PAGE", size=Pt(9))
+
+
+def set_header_styleref(section):
+    """设置该节页眉为 STYLEREF 域(自动显示当前章标题)，五号宋体居中。"""
+    header = section.header
+    header.is_linked_to_previous = False
+    p = header.paragraphs[0]
+    p.text = ""
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.first_line_indent = Pt(0)
+    _append_field(p, 'STYLEREF "Heading 1" \\* MERGEFORMAT', size=Pt(10.5))
+
+
+def add_section_break(doc):
+    """插入分节符(下一页)并继承页面边距，返回新建的 section。"""
+    from docx.enum.section import WD_SECTION
+    new_section = doc.add_section(WD_SECTION.NEW_PAGE)
+    setup_page(new_section)
+    return new_section
+
+
 def add_page_break(doc):
     """添加分页符。"""
     from docx.enum.text import WD_BREAK
@@ -226,18 +319,20 @@ add_paragraph(doc, "锂电池数字孪生与实时仿真可视化平台",
 for _ in range(4):
     add_empty_line(doc)
 
-add_paragraph(doc, "专业  ________  年级  ________  姓名  ________  学号  ________",
-              cn_font="宋体", size=Pt(14),
-              alignment=WD_ALIGN_PARAGRAPH.CENTER, first_indent=False)
+for _label, _value in [("专业", "数据科学与大数据技术"), ("年级", "2023级"),
+                       ("姓名", "仲旭东"), ("学号", "2395141057")]:
+    add_paragraph(doc, f"{_label}  {_value}",
+                  cn_font="宋体", size=Pt(14),
+                  alignment=WD_ALIGN_PARAGRAPH.CENTER, first_indent=False)
 
 for _ in range(3):
     add_empty_line(doc)
 
-add_paragraph(doc, "2025年5月",
+add_paragraph(doc, "2026年6月",
               cn_font="宋体", size=Pt(12),
               alignment=WD_ALIGN_PARAGRAPH.CENTER, first_indent=False)
 
-add_page_break(doc)
+add_section_break(doc)  # 封面单独成节(无页码)
 
 # ═══════════════════════════════════════
 # 中文摘要
@@ -290,7 +385,7 @@ add_paragraph(doc, "Lithium Battery Digital Twin and Real-time Simulation Visual
 
 add_empty_line(doc)
 
-add_paragraph(doc, "Zhang Xiaosan",
+add_paragraph(doc, "Zhong Xudong",
               cn_font="宋体", en_font="Times New Roman", size=Pt(12),
               alignment=WD_ALIGN_PARAGRAPH.CENTER, first_indent=False)
 
@@ -371,7 +466,7 @@ fld_char_end = parse_xml(f'<w:fldChar {nsdecls("w")} w:fldCharType="end"/>')
 run4 = p.add_run()
 run4._element.append(fld_char_end)
 
-add_page_break(doc)
+add_section_break(doc)  # 前置部分(摘要/目录)→正文 分节，正文页码重新从1开始
 
 # ══════════════════════════════════════════════════════
 # 第1章 绪论
@@ -381,12 +476,14 @@ add_chapter_title(doc, "1", "绪论")
 
 add_section_title(doc, "1.1", "研究背景与意义")
 
-body(doc,
+body_cited(doc,
      "锂离子电池凭借其高能量密度、长循环寿命和低自放电率等优势,已成为新能源汽车、"
      "便携式电子设备和大规模储能系统的核心动力来源。截至2024年底,全球锂电池市场规模已突破"
      "千亿美元,中国更是占据了全球产能的70%以上。然而,锂电池在使用过程中不可避免地经历容量衰减"
      "和内阻增长等老化现象,严重影响系统的可靠性和安全性。因此,对电池健康状态(State of Health, SOH)"
-     "进行准确评估,对于延长电池使用寿命、优化充放电策略和预防安全事故具有重要的工程意义。")
+     "进行准确评估,对于延长电池使用寿命、优化充放电策略和预防安全事故具有重要的工程意义",
+     ("cite", "1"),
+     "。")
 
 body(doc,
      "电池管理系统(Battery Management System, BMS)在运行过程中持续采集电压、电流、温度等多维时序数据,"
@@ -394,8 +491,10 @@ body(doc,
      "大数据可视化技术为这一问题提供了新的解决思路,通过将复杂的退化数据转化为交互式图表、热力图和三维散点图等"
      "可视化形式,帮助研究人员和运维工程师快速理解电池的健康状况并做出科学决策。")
 
-body(doc,
-     "数字孪生(Digital Twin)概念的兴起进一步拓展了可视化的边界。数字孪生通过构建物理实体的虚拟映射模型,"
+body_cited(doc,
+     "数字孪生(Digital Twin)概念的兴起进一步拓展了可视化的边界",
+     ("cite", "2"),
+     "。数字孪生通过构建物理实体的虚拟映射模型,"
      "实现对真实系统的实时监控和行为预测。在电池管理领域,基于等效电路模型(Equivalent Circuit Model, ECM)"
      "的数字孪生可以模拟不同工况下的电池放电行为,为运维决策提供仿真支撑。"
      "将数字孪生与大数据可视化相结合,构建集监控、预测、仿真于一体的综合平台,具有重要的研究价值和应用前景。")
@@ -404,15 +503,21 @@ add_section_title(doc, "1.2", "国内外研究现状")
 
 add_subsection_title(doc, "1.2.1", "电池SOH估计方法")
 
-body(doc,
+body_cited(doc,
      "电池SOH估计方法大致分为三类。第一类是基于模型的方法,通过电化学模型或等效电路模型"
-     "描述电池内部的物理化学过程,结合卡尔曼滤波等状态估计算法进行SOH预测。"
-     "这类方法物理可解释性强,但计算复杂度较高,且模型参数标定困难。"
-     "第二类是基于数据驱动的方法,利用机器学习算法从历史运行数据中学习退化规律。"
-     "常用的算法包括支持向量回归、随机森林、长短期记忆网络(LSTM)和Transformer等。"
+     "描述电池内部的物理化学过程,结合卡尔曼滤波等状态估计算法进行SOH预测",
+     ("cite", "3"),
+     "。这类方法物理可解释性强,但计算复杂度较高,且模型参数标定困难。"
+     "第二类是基于数据驱动的方法,利用机器学习算法从历史运行数据中学习退化规律",
+     ("cite", "4"),
+     "。常用的算法包括支持向量回归、随机森林、长短期记忆网络(LSTM)",
+     ("cite", "5"),
+     "和Transformer等。"
      "数据驱动方法无需深入了解电池内部机理,但对训练数据的质量和数量有较高要求。"
      "第三类是混合方法,将物理模型的先验知识融入数据驱动框架,兼顾可解释性和预测精度。"
-     "物理信息神经网络(Physics-Informed Neural Network, PINN)是这一方向的代表性工作。")
+     "物理信息神经网络(Physics-Informed Neural Network, PINN)是这一方向的代表性工作",
+     ("cite", "6"),
+     "。")
 
 add_subsection_title(doc, "1.2.2", "电池可视化与数字孪生")
 
@@ -465,10 +570,11 @@ add_chapter_title(doc, "2", "数据采集与处理")
 
 add_section_title(doc, "2.1", "数据来源")
 
-body(doc,
+body_cited(doc,
      "本项目使用NASA Prognostics Center of Excellence (PCoE)和马里兰大学"
-     "Center for Advanced Life Cycle Engineering (CALCE)两个权威公开数据集。"
-     "选择这两个数据集的原因在于:NASA数据集提供了室温恒流条件下的完整老化轨迹,适合验证模型的基本预测能力;"
+     "Center for Advanced Life Cycle Engineering (CALCE)两个权威公开数据集",
+     ("cite", "7"),
+     "。选择这两个数据集的原因在于:NASA数据集提供了室温恒流条件下的完整老化轨迹,适合验证模型的基本预测能力;"
      "CALCE数据集包含不同温度和倍率的老化条件,适合评估模型的工况泛化能力。"
      "两个数据集的基本信息如表2.1所示。")
 
@@ -576,18 +682,22 @@ body(doc,
      "通过训练多棵决策树并取平均值来提升预测精度和稳定性。本项目使用包含100棵决策树的随机森林,"
      "每棵树的最大深度不作限制,特征采样比例为总特征数的平方根。")
 
-body(doc,
+body_cited(doc,
      "随机森林在留一电池交叉验证下的平均R²为0.1539,显著低于线性回归。"
      "这一结果揭示了跨电池泛化的内在挑战:不同电池的退化模式存在差异,"
      "基于部分电池训练的决策树难以准确预测未见电池的容量变化。"
-     "不过,随机森林支持基于SHAP(SHapley Additive exPlanations)的特征重要性分析,"
+     "不过,随机森林支持基于SHAP(SHapley Additive exPlanations)",
+     ("cite", "8"),
+     "的特征重要性分析,"
      "通过TreeExplainer计算各特征对每个预测的边际贡献,为模型可解释性提供了定量支撑。")
 
 add_section_title(doc, "3.3", "Transformer时序预测模型")
 
-body(doc,
+body_cited(doc,
      "Transformer模型最初被提出用于自然语言处理任务,其核心的自注意力(Self-Attention)机制"
-     "能够有效捕捉序列中的长程依赖关系。本项目将其适配到电池退化预测场景,"
+     "能够有效捕捉序列中的长程依赖关系",
+     ("cite", "9"),
+     "。本项目将其适配到电池退化预测场景,"
      "设计了专用的时序Transformer架构,主要包含以下几个组件:")
 
 body(doc,
@@ -642,9 +752,10 @@ add_table(doc,
 
 add_section_title(doc, "3.5", "集成策略设计")
 
-body(doc,
-     "为充分融合4种基础模型的互补优势,本项目设计了4种集成策略。"
-     "每种策略都输出融合后的预测值和置信区间,供可视化系统展示。")
+body_cited(doc,
+     "为充分融合4种基础模型的互补优势,本项目设计了4种集成策略",
+     ("cite", "10"),
+     "。每种策略都输出融合后的预测值和置信区间,供可视化系统展示。")
 
 add_subsection_title(doc, "3.5.1", "加权集成")
 
@@ -731,7 +842,7 @@ body(doc,
 add_section_title(doc, "4.1", "车队总览仪表盘")
 
 body(doc,
-     "车队总览页面是用户进入平台后看到的首页,以全局视角呈现8块电池的健康状态概览。"
+     "车队总览页面是用户进入平台后看到的首页,以全局视角呈现8块电池的健康状态概览,其整体界面如图4.1所示。"
      "页面顶部为KPI(关键绩效指标)卡片区,以四张卡片分别展示车队平均SOH(80.8%)、"
      "电池总数(8块/846循环)、最大容量衰减(41.7%)和最差电池SOH(59.3%)。"
      "每张卡片顶部带有颜色条,绿色表示健康、橙色表示警告、红色表示危险,帮助用户快速识别异常。")
@@ -743,10 +854,12 @@ body(doc,
      "下方的容量退化曲线和内阻变化趋势图分别展示了8块电池的容量和电阻随循环的时序变化,"
      "两者形成互补视角。页面底部的雷达图在极坐标系中展示8种模型的平均R²。")
 
+add_figure(doc, "fig_overview.png", "4.1", "车队总览仪表盘界面")
+
 add_section_title(doc, "4.2", "电池详情页")
 
 body(doc,
-     "电池详情页面支持通过下拉框选择单块电池进行深入分析。"
+     "电池详情页面支持通过下拉框选择单块电池进行深入分析,其界面如图4.2所示。"
      "页面顶部的KPI卡片展示该电池的数据来源、循环总数、初始容量、最终SOH和容量衰减百分比。"
      "SOH仪表盘以圆形仪表的形式直观呈现当前健康百分比,"
      "仪表盘的颜色分段从红色(低于50%)到绿色(高于95%)自动切换。")
@@ -760,10 +873,12 @@ body(doc,
      "用户可以拖动滑块选择任意循环区间,对比不同老化阶段的电压特征差异,"
      "颜色渐变从蓝色(早期循环)到红色(晚期循环),直观反映时序先后关系。")
 
+add_figure(doc, "fig_detail.png", "4.2", "电池详情页界面")
+
 add_section_title(doc, "4.3", "数字孪生仿真器")
 
 body(doc,
-     "数字孪生仿真器是本平台的核心创新功能之一,基于1-RC Thevenin等效电路模型实现。"
+     "数字孪生仿真器是本平台的核心创新功能之一,基于1-RC Thevenin等效电路模型实现,其交互界面如图4.3所示。"
      "该模型由一个串联欧姆电阻R0和一个并联RC回路(R1和C1)组成,"
      "通过开路电压(Open Circuit Voltage, OCV)多项式拟合SOC-OCV关系。"
      "控制面板提供四个交互控件:电池选择下拉框、C倍率滑块(0.5C至3C)、"
@@ -778,10 +893,12 @@ body(doc,
      "老化轨迹图以双轴形式展示容量和R0随循环次数的演化趋势,"
      "当前循环位置以虚线标注,帮助用户定位电池在生命周期中的位置。")
 
+add_figure(doc, "fig_twin.png", "4.3", "数字孪生仿真器界面")
+
 add_section_title(doc, "4.4", "模型预测竞技场")
 
 body(doc,
-     "模型预测竞技场支持8种模型的自由多选对比,是评估和比较模型性能的核心工具页面。"
+     "模型预测竞技场支持8种模型的自由多选对比,是评估和比较模型性能的核心工具页面,其界面如图4.4所示。"
      "页面顶部的控制面板包含电池选择、模型多选和置信区间显示开关三个控件。"
      "指标对比表以RMSE、MAE、R²和MAPE四个维度量化评估所选模型,"
      "模型名称按专属颜色标识,便于在后续图表中对应识别。")
@@ -801,10 +918,12 @@ body(doc,
      "集成权重分布图以分组柱状图展示4种集成策略对4个基础模型的平均权重分配。"
      "Transformer注意力热图可视化自注意力权重矩阵,揭示模型关注的历史循环模式。")
 
+add_figure(doc, "fig_arena.png", "4.4", "模型预测竞技场界面")
+
 add_section_title(doc, "4.5", "可解释性分析")
 
 body(doc,
-     "可解释性分析页面旨在揭示模型的决策依据,增强预测结果的可信度。"
+     "可解释性分析页面旨在揭示模型的决策依据,增强预测结果的可信度,其界面如图4.5所示。"
      "页面左侧展示随机森林模型基于SHAP的特征重要性排序,"
      "以水平柱状图按平均绝对SHAP值从大到小排列,渐变色突出主导特征。"
      "右侧展示线性回归模型的标准化回归系数,"
@@ -823,10 +942,12 @@ body(doc,
      "揭示不同模型对数据量的敏感程度:线性回归在少量数据下即可收敛,"
      "而Transformer和随机森林需要更多训练样本才能展现优势。")
 
+add_figure(doc, "fig_explain.png", "4.5", "可解释性分析界面")
+
 add_section_title(doc, "4.6", "3D退化景观")
 
 body(doc,
-     "3D退化景观页面将电池退化过程映射到三维空间,提供沉浸式的数据探索体验。"
+     "3D退化景观页面将电池退化过程映射到三维空间,提供沉浸式的数据探索体验,其界面如图4.6所示。"
      "主体为三维散点图,以循环次数、内阻和容量(或其他可选变量)构成三个坐标轴,"
      "支持按SOH、数据来源、电池编号或容量衰减率着色。"
      "用户可以通过鼠标拖拽旋转视角、滚轮缩放、右键平移,从不同角度观察退化轨迹的空间分布。"
@@ -839,6 +960,8 @@ body(doc,
      "三维散点图与二维投影的联动,帮助用户从不同维度理解电池退化的多维特征。"
      "三维可视化的引入打破了传统二维图表的信息呈现局限,"
      "使研究人员能够直观识别电池老化数据中的非线性流形结构和异常离群点。")
+
+add_figure(doc, "fig_3d.png", "4.6", "3D退化景观界面")
 
 add_page_break(doc)
 
@@ -976,16 +1099,16 @@ add_paragraph(doc, "参考文献", cn_font="黑体", size=Pt(14), bold=False,
 add_empty_line(doc)
 
 references = [
-    "[1] Saha B, Goebel K. Battery data set[EB/OL]. NASA Ames Prognostics Data Repository, 2007.",
-    "[2] Xing Y, Ma E W M, Tsui K L, et al. An ensemble model for predicting the remaining useful performance of lithium-ion batteries[J]. Microelectronics Reliability, 2013, 53(6): 811-820.",
-    "[3] Severson K A, Attia P M, Jin N, et al. Data-driven prediction of battery cycle life before capacity degradation[J]. Nature Energy, 2019, 4(5): 383-391.",
-    "[4] Hu X, Xu L, Lin X, et al. Battery lifetime prognostics[J]. Joule, 2020, 4(2): 310-346.",
-    "[5] Raissi M, Perdikaris P, Karniadakis G E. Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations[J]. Journal of Computational Physics, 2019, 378: 686-707.",
-    "[6] Vaswani A, Shazeer N, Parmar N, et al. Attention is all you need[C]. Advances in Neural Information Processing Systems, 2017: 5998-6008.",
-    "[7] Lundberg S M, Lee S I. A unified approach to interpreting model predictions[C]. Advances in Neural Information Processing Systems, 2017: 4765-4774.",
-    "[8] Grieves M, Vickers J. Digital twin: Mitigating unpredictable, undesirable emergent behavior in complex systems[M]. Transdisciplinary Perspectives on Complex Systems, Springer, 2017: 85-113.",
-    "[9] He W, Williard N, Osterman M, et al. Prognostics of lithium-ion batteries based on Dempster-Shafer theory and the Bayesian Monte Carlo method[J]. Journal of Power Sources, 2011, 196(23): 10314-10321.",
-    "[10] Zhang Y, Xiong R, He H, et al. Long short-term memory recurrent neural network for remaining useful life prediction of lithium-ion batteries[J]. IEEE Transactions on Vehicular Technology, 2018, 67(7): 5695-5705.",
+    "[1] Hu X, Xu L, Lin X, et al. Battery lifetime prognostics[J]. Joule, 2020, 4(2): 310-346.",
+    "[2] Grieves M, Vickers J. Digital twin: Mitigating unpredictable, undesirable emergent behavior in complex systems[M]. Transdisciplinary Perspectives on Complex Systems, Springer, 2017: 85-113.",
+    "[3] He W, Williard N, Osterman M, et al. Prognostics of lithium-ion batteries based on Dempster-Shafer theory and the Bayesian Monte Carlo method[J]. Journal of Power Sources, 2011, 196(23): 10314-10321.",
+    "[4] Severson K A, Attia P M, Jin N, et al. Data-driven prediction of battery cycle life before capacity degradation[J]. Nature Energy, 2019, 4(5): 383-391.",
+    "[5] Zhang Y, Xiong R, He H, et al. Long short-term memory recurrent neural network for remaining useful life prediction of lithium-ion batteries[J]. IEEE Transactions on Vehicular Technology, 2018, 67(7): 5695-5705.",
+    "[6] Raissi M, Perdikaris P, Karniadakis G E. Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations[J]. Journal of Computational Physics, 2019, 378: 686-707.",
+    "[7] Saha B, Goebel K. Battery data set[EB/OL]. NASA Ames Prognostics Data Repository, 2007.",
+    "[8] Lundberg S M, Lee S I. A unified approach to interpreting model predictions[C]. Advances in Neural Information Processing Systems, 2017: 4765-4774.",
+    "[9] Vaswani A, Shazeer N, Parmar N, et al. Attention is all you need[C]. Advances in Neural Information Processing Systems, 2017: 5998-6008.",
+    "[10] Xing Y, Ma E W M, Tsui K L, et al. An ensemble model for predicting the remaining useful performance of lithium-ion batteries[J]. Microelectronics Reliability, 2013, 53(6): 811-820.",
 ]
 
 for ref in references:
@@ -1020,6 +1143,21 @@ body(doc,
      "感谢开源社区提供的Dash、Plotly、PyTorch、scikit-learn等优秀工具,"
      "活跃的社区生态和详尽的技术文档大幅降低了平台的开发门槛。"
      "最后,感谢在项目开发过程中给予过帮助和建议的所有朋友。")
+
+
+# ══════════════════════════════════════════════════════
+# 页眉与分节页码
+# 封面无页码；摘要/目录用罗马数字；正文用阿拉伯数字并从1重新计数；正文页眉自动显示章标题
+# ══════════════════════════════════════════════════════
+
+_sections = doc.sections
+if len(_sections) >= 3:
+    front_sec, body_sec = _sections[1], _sections[2]
+    set_footer_pagenum(front_sec, "upperRoman", 1)   # 摘要/目录：I, II, III...
+    set_footer_pagenum(body_sec, "decimal", 1)       # 正文：1, 2, 3...
+    set_header_styleref(body_sec)                    # 正文页眉："第X章 章标题"
+else:
+    print(f"警告: 期望3个分节, 实际 {len(_sections)} 个, 跳过页眉页码设置")
 
 
 # ══════════════════════════════════════════════════════
