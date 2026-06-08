@@ -11,6 +11,7 @@ from docx.oxml import parse_xml
 import copy
 
 OUTPUT = "/Users/zhongxudong/Desktop/大数据可视化技术/大数据可视化技术_课程报告_华大格式.docx"
+REPO_URL = "https://github.com/victorzhong0110/battery-digital-twin-visualization"
 
 
 # ══════════════════════════════════════════════════════
@@ -330,6 +331,15 @@ for _ in range(3):
 
 add_paragraph(doc, "2026年6月",
               cn_font="宋体", size=Pt(12),
+              alignment=WD_ALIGN_PARAGRAPH.CENTER, first_indent=False)
+
+add_empty_line(doc)
+
+add_paragraph(doc, "项目源代码仓库（GitHub）",
+              cn_font="宋体", size=Pt(12),
+              alignment=WD_ALIGN_PARAGRAPH.CENTER, first_indent=False)
+add_paragraph(doc, REPO_URL,
+              cn_font="宋体", en_font="Times New Roman", size=Pt(12),
               alignment=WD_ALIGN_PARAGRAPH.CENTER, first_indent=False)
 
 add_section_break(doc)  # 封面单独成节(无页码)
@@ -837,7 +847,8 @@ body(doc,
      "所有页面均支持全中文界面,图表支持鼠标悬停提示、缩放和导出等交互操作。"
      "前端布局采用CSS自定义属性(CSS Custom Properties)定义设计令牌,"
      "包含30余个颜色、间距、阴影和圆角变量,保证全局视觉一致性。"
-     "数据加载层采用LRU缓存策略,避免重复读取Parquet文件造成的响应延迟。")
+     "数据加载层采用LRU缓存策略,避免重复读取Parquet文件造成的响应延迟。"
+     "本平台的完整源代码已开源,托管于GitHub,仓库地址为" + REPO_URL + "。")
 
 add_section_title(doc, "4.1", "车队总览仪表盘")
 
